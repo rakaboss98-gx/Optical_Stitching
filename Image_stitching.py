@@ -10,10 +10,13 @@ import matplotlib.pyplot as plt
 
 feature_extractor = 'orb'
 feature_matching = 'bf'
-cutoff = 0.5 #how many columns at the end of the panoramic image need to be cropped percent/100 (this should be less than overlap percentage)
-images = ['Images/T1.jpg','Images/T2.jpg','Images/T3.jpg'] #Input the images to be stitched together
+cutoff = 2.4 #how many columns at the end of the panoramic image need to be cropped percent/100 (this should be less than overlap percentage)
+images = ['Images/11.jpg','Images/4.jpg'] #Input the images to be stitched together
 
 queryImg = imageio.imread(images[0])
+queryImg0 = queryImg[:,0:2750]
+queryImg = queryImg[:,2750:] #remove this line later
+
 rows_filter = queryImg.shape[0]
 column_filter = int(cutoff*queryImg.shape[1])
 
@@ -21,6 +24,7 @@ for i in range(1,len(images)):
     
     queryImg_gray = cv2.cvtColor(queryImg, cv2.COLOR_RGB2GRAY)
     trainImg = imageio.imread(images[i])
+
     trainImg_gray = cv2.cvtColor(trainImg, cv2.COLOR_RGB2GRAY)
 
     kpsA, featuresA = detectAndDescribe(trainImg_gray, method=feature_extractor)
@@ -43,11 +47,11 @@ for i in range(1,len(images)):
 
     result = cv2.warpPerspective(trainImg, H, (width, height))
     result[0:queryImg.shape[0], 0:queryImg.shape[1]] = queryImg
-    result = result[0:rows_filter,0:result.shape[1]-column_filter]
+    result = result[:rows_filter,0:result.shape[1]-column_filter]
     
-    queryImg = result
+    queryImg = np.concatenate((queryImg0,result),axis=1)
     
-    del result
+    #del result
     
     
     plt.figure(figsize=(20,10))
